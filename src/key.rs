@@ -51,6 +51,12 @@ impl str::FromStr for SecretKey {
     }
 }
 
+impl hash::Hash for SecretKey {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        state.write(&self.0)
+    }
+}
+
 /// The number 1 encoded as a secret key
 pub const ONE_KEY: SecretKey = SecretKey([0, 0, 0, 0, 0, 0, 0, 0,
                                           0, 0, 0, 0, 0, 0, 0, 0,

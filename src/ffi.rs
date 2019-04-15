@@ -111,6 +111,12 @@ impl Default for Signature {
     }
 }
 
+impl hash::Hash for Signature {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        state.write(&self.0)
+    }
+}
+
 impl RecoverableSignature {
     /// Create a new (zeroed) signature usable for the FFI interface
     pub fn new() -> RecoverableSignature { RecoverableSignature([0; 65]) }
