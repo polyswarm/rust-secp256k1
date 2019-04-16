@@ -140,7 +140,7 @@
 #[cfg(feature = "serde")] pub extern crate serde;
 #[cfg(all(test, feature = "serde"))] extern crate serde_test;
 
-use std::{error, fmt, ptr, str};
+use std::{error, fmt, ptr, str, convert, hash};
 #[cfg(any(test, feature = "rand"))] use rand::Rng;
 
 #[macro_use]
@@ -153,8 +153,6 @@ pub mod key;
 pub use key::SecretKey;
 pub use key::PublicKey;
 use std::marker::PhantomData;
-use std::hash;
-use std::convert;
 
 /// A tag used for recovering the public key from a compact signature
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -243,6 +241,11 @@ pub fn to_i32(self) -> i32 {
 }
 
 impl Signature {
+    /// Convert from an exact slice to Signature
+    pub fn from_slice(data: &[u8]) -> Result<Signature, ()> {
+        ffi::Signature::from_slice(data).map(|s| Signature(s))
+    }
+
 #[inline]
     /// Converts a DER-encoded byte slice to a signature
     pub fn from_der(data: &[u8]) -> Result<Signature, Error> {

@@ -104,6 +104,18 @@ impl Signature {
     pub fn new() -> Signature { Signature([0; 64]) }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> Signature { mem::uninitialized() }
+
+    /// Create a new Signature from a slice of the contents
+    pub fn from_slice(data: &[u8]) -> Result<Signature, ()> {
+        let mut array_data: [u8; 64] = [0; 64];
+        if data.len() != 64 {
+            return Err(());
+        }
+        array_data.clone_from_slice(data);
+
+        Ok(Signature(array_data))
+    }
+
 }
 
 impl Default for Signature {
