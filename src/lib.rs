@@ -153,6 +153,8 @@ pub mod key;
 pub use key::SecretKey;
 pub use key::PublicKey;
 use std::marker::PhantomData;
+use std::hash;
+use std::convert;
 
 /// A tag used for recovering the public key from a compact signature
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -196,6 +198,18 @@ fn from_str(s: &str) -> Result<Signature, Error> {
         Ok(x) => Signature::from_der(&res[0..x]),
         _ => Err(Error::InvalidSignature),
     }
+}
+}
+
+impl hash::Hash for Signature {
+fn hash<H: hash::Hasher>(&self, state: &mut H) {
+    self.0.hash(state)
+}
+}
+
+impl convert::AsRef<[u8]> for Signature {
+fn as_ref(&self) -> &[u8] {
+    self.0.as_ref()
 }
 }
 

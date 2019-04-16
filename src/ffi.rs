@@ -18,6 +18,7 @@
 //! not be needed for most users.
 use std::mem;
 use std::hash;
+use std::convert;
 use std::os::raw::{c_int, c_uchar, c_uint, c_void};
 
 /// Flag for context to enable no precomputation
@@ -114,6 +115,12 @@ impl Default for Signature {
 impl hash::Hash for Signature {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write(&self.0)
+    }
+}
+
+impl convert::AsRef<[u8]> for Signature {
+    fn as_ref(&self) -> &[u8] {
+        &self.0[..]
     }
 }
 
