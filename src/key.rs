@@ -17,7 +17,7 @@
 
 #[cfg(any(test, feature = "rand"))] use rand::Rng;
 
-use std::{fmt, mem, str, hash};
+use std::{fmt, mem, str, hash, convert};
 
 use super::{from_hex, Secp256k1};
 use super::Error::{self, InvalidPublicKey, InvalidSecretKey};
@@ -54,6 +54,12 @@ impl str::FromStr for SecretKey {
 impl hash::Hash for SecretKey {
     fn hash<H: hash::Hasher>(&self, state: &mut H) {
         state.write(&self.0)
+    }
+}
+
+impl convert::AsRef<[u8]> for SecretKey {
+    fn as_ref(&self) -> &[u8] {
+        &self.0[..]
     }
 }
 
