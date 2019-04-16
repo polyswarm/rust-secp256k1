@@ -211,6 +211,13 @@ fn as_ref(&self) -> &[u8] {
 }
 }
 
+impl FromSlice for Signature {
+    type Item = Signature;
+fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
+    ffi::Signature::from_slice(data).map(|s| Signature(s))
+}
+}
+
 /// An ECDSA signature with a recovery ID for pubkey recovery
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 pub struct RecoverableSignature(ffi::RecoverableSignature);
@@ -221,6 +228,15 @@ pub struct RecoverableSignature(ffi::RecoverableSignature);
 pub trait ThirtyTwoByteHash {
     /// Converts the object into a 32-byte array
     fn into_32(self) -> [u8; 32];
+}
+
+/// Trait describing something that can be created from a slice of u8 values.
+/// Can require certain characteristics by returning Err if they are not met.
+pub trait FromSlice {
+    /// Associated Type that FromSlice Returns
+    type Item;
+    /// Convert from an exact slice to F
+    fn from_slice(data: &[u8]) -> Result<Self::Item, ()> ;
 }
 
 impl RecoveryId {
@@ -241,10 +257,6 @@ pub fn to_i32(self) -> i32 {
 }
 
 impl Signature {
-    /// Convert from an exact slice to Signature
-    pub fn from_slice(data: &[u8]) -> Result<Signature, ()> {
-        ffi::Signature::from_slice(data).map(|s| Signature(s))
-    }
 
 #[inline]
     /// Converts a DER-encoded byte slice to a signature

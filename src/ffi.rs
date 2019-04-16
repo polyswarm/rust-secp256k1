@@ -20,6 +20,7 @@ use std::mem;
 use std::hash;
 use std::convert;
 use std::os::raw::{c_int, c_uchar, c_uint, c_void};
+use super::FromSlice;
 
 /// Flag for context to enable no precomputation
 pub const SECP256K1_START_NONE: c_uint = 1;
@@ -92,30 +93,20 @@ impl hash::Hash for PublicKey {
 pub struct Signature([c_uchar; 64]);
 impl_array_newtype!(Signature, c_uchar, 64);
 impl_raw_debug!(Signature);
+impl_from_slice!(Signature; 64);
 
 /// Library-internal representation of a Secp256k1 signature + recovery ID
 #[repr(C)]
 pub struct RecoverableSignature([c_uchar; 65]);
 impl_array_newtype!(RecoverableSignature, c_uchar, 65);
 impl_raw_debug!(RecoverableSignature);
+impl_from_slice!(RecoverableSignature; 65);
 
 impl Signature {
     /// Create a new (zeroed) signature usable for the FFI interface
     pub fn new() -> Signature { Signature([0; 64]) }
     /// Create a new (uninitialized) signature usable for the FFI interface
     pub unsafe fn blank() -> Signature { mem::uninitialized() }
-
-    /// Create a new Signature from a slice of the contents
-    pub fn from_slice(data: &[u8]) -> Result<Signature, ()> {
-        let mut array_data: [u8; 64] = [0; 64];
-        if data.len() != 64 {
-            return Err(());
-        }
-        array_data.clone_from_slice(data);
-
-        Ok(Signature(array_data))
-    }
-
 }
 
 impl Default for Signature {

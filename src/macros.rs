@@ -62,7 +62,7 @@ macro_rules! impl_array_newtype {
             #[inline]
             fn cmp(&self, other: &$thing) -> ::std::cmp::Ordering {
                 self[..].cmp(&other[..])
-            }            
+            }
         }
 
         impl Clone for $thing {
@@ -157,4 +157,21 @@ macro_rules! impl_raw_debug {
             }
         }
      }
+}
+
+macro_rules! impl_from_slice {
+    ($name:ident; $len:expr) => {
+        impl FromSlice for $name {
+        type Item = $name;
+        fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
+            let mut array_data: [u8; $len] = [0; $len];
+            if data.len() != $len {
+                return Err(());
+            }
+            array_data.clone_from_slice(data);
+
+            Ok($name(array_data))
+        }
+        }
+    };
 }
