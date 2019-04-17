@@ -141,6 +141,7 @@
 #[cfg(all(test, feature = "serde"))] extern crate serde_test;
 
 use std::{error, fmt, ptr, str, convert, hash};
+use std::ops::{Index, Range, RangeFrom, RangeFull, RangeTo};
 #[cfg(any(test, feature = "rand"))] use rand::Rng;
 
 #[macro_use]
@@ -215,6 +216,31 @@ impl FromSlice for Signature {
     type Item = Signature;
 fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
     ffi::Signature::from_slice(data).map(|s| Signature(s))
+}
+}
+
+impl Index<Range<usize>> for Signature {
+type Output = [u8];
+fn index(&self, _index: Range<usize>) -> &[u8] {
+    self.0.index(_index)
+}
+}
+impl Index<RangeTo<usize>> for Signature {
+type Output = [u8];
+fn index(&self, _index: RangeTo<usize>) -> &[u8] {
+    self.0.index(_index)
+}
+}
+impl Index<RangeFrom<usize>> for Signature {
+type Output = [u8];
+fn index(&self, _index: RangeFrom<usize>) -> &[u8] {
+    self.0.index(_index)
+}
+}
+impl Index<RangeFull> for Signature {
+type Output = [u8];
+fn index(&self, _index: RangeFull) -> &[u8] {
+    self.0.index(_index)
 }
 }
 

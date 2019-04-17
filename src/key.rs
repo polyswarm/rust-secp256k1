@@ -18,6 +18,7 @@
 #[cfg(any(test, feature = "rand"))] use rand::Rng;
 
 use std::{fmt, mem, str, hash, convert};
+use std::ops::{Index, Range, RangeFrom, RangeFull, RangeTo};
 
 use super::{from_hex, Secp256k1};
 use super::Error::{self, InvalidPublicKey, InvalidSecretKey};
@@ -402,6 +403,32 @@ impl<'de> ::serde::Deserialize<'de> for PublicKey {
         PublicKey::from_slice(sl).map_err(D::Error::custom)
     }
 }
+
+impl Index<Range<usize>> for PublicKey {
+    type Output = [u8];
+    fn index(&self, _index: Range<usize>) -> &[u8] {
+        self.0.index(_index)
+    }
+}
+impl Index<RangeTo<usize>> for PublicKey {
+    type Output = [u8];
+    fn index(&self, _index: RangeTo<usize>) -> &[u8] {
+        self.0.index(_index)
+    }
+}
+impl Index<RangeFrom<usize>> for PublicKey {
+    type Output = [u8];
+    fn index(&self, _index: RangeFrom<usize>) -> &[u8] {
+        self.0.index(_index)
+    }
+}
+impl Index<RangeFull> for PublicKey {
+    type Output = [u8];
+    fn index(&self, _index: RangeFull) -> &[u8] {
+        self.0.index(_index)
+    }
+}
+
 
 #[cfg(test)]
 mod test {
