@@ -145,7 +145,7 @@ extern crate test;
 #[cfg(any(test, feature = "rand"))]
 use rand::Rng;
 use std::ops::{Index, Range, RangeFrom, RangeFull, RangeTo};
-use std::{convert, error, fmt, ptr, str};
+use std::{convert, error, fmt, ptr, hash, str};
 
 #[macro_use]
 pub mod macros;
@@ -200,6 +200,12 @@ impl str::FromStr for Signature {
             Ok(x) => Signature::from_der(&res[0..x]),
             _ => Err(Error::InvalidSignature),
         }
+    }
+}
+
+impl hash::Hash for Signature {
+    fn hash<H: hash::Hasher>(&self, state: &mut H) {
+        self.0.hash(state)
     }
 }
 
