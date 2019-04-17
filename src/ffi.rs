@@ -88,6 +88,12 @@ impl hash::Hash for PublicKey {
     }
 }
 
+impl AsRef<[u8]> for PublicKey {
+    fn as_ref(&self) -> &[u8] {
+        &self.0[..]
+    }
+}
+
 /// Library-internal representation of a Secp256k1 signature
 #[repr(C)]
 pub struct Signature([c_uchar; 64]);
