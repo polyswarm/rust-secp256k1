@@ -14,6 +14,7 @@
 //
 
 // This is a macro that routinely comes in handy
+#[macro_export]
 macro_rules! impl_array_newtype {
     ($thing:ident, $ty:ty, $len:expr) => {
         impl Copy for $thing {}
@@ -132,6 +133,7 @@ macro_rules! impl_array_newtype {
     }
 }
 
+#[macro_export]
 macro_rules! impl_pretty_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
@@ -146,6 +148,7 @@ macro_rules! impl_pretty_debug {
      }
 }
 
+#[macro_export]
 macro_rules! impl_raw_debug {
     ($thing:ident) => {
         impl ::std::fmt::Debug for $thing {
@@ -159,6 +162,7 @@ macro_rules! impl_raw_debug {
      }
 }
 
+#[macro_export]
 macro_rules! impl_from_slice {
     ($name:ident; $len:expr) => {
         impl FromSlice for $name {
