@@ -144,7 +144,7 @@ use std::{error, fmt, ptr, str, convert, hash};
 #[cfg(any(test, feature = "rand"))] use rand::Rng;
 
 #[macro_use]
-mod macros;
+pub mod macros;
 pub mod constants;
 pub mod ecdh;
 pub mod ffi;
