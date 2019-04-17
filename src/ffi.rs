@@ -16,11 +16,11 @@
 //! # FFI bindings
 //! Direct bindings to the underlying C library functions. These should
 //! not be needed for most users.
-use std::mem;
-use std::hash;
-use std::convert;
-use std::os::raw::{c_int, c_uchar, c_uint, c_void};
 use super::FromSlice;
+use std::convert;
+use std::hash;
+use std::mem;
+use std::os::raw::{c_int, c_uchar, c_uint, c_void};
 
 /// Flag for context to enable no precomputation
 pub const SECP256K1_START_NONE: c_uint = 1;
@@ -40,12 +40,14 @@ pub const SECP256K1_SER_COMPRESSED: c_uint = (1 << 1) | (1 << 8);
 /// around the FFI functions to use it. And it's an unsafe type.
 /// Nonces are generated deterministically by RFC6979 by
 /// default; there should be no need to ever change this.
-pub type NonceFn = unsafe extern "C" fn(nonce32: *mut c_uchar,
-                                        msg32: *const c_uchar,
-                                        key32: *const c_uchar,
-                                        algo16: *const c_uchar,
-                                        attempt: c_uint,
-                                        data: *const c_void);
+pub type NonceFn = unsafe extern "C" fn(
+    nonce32: *mut c_uchar,
+    msg32: *const c_uchar,
+    key32: *const c_uchar,
+    algo16: *const c_uchar,
+    attempt: c_uint,
+    data: *const c_void,
+);
 
 /// Hash function to use to post-process an ECDH point to get
 /// a shared secret.
@@ -61,7 +63,8 @@ pub type EcdhHashFn = unsafe extern "C" fn(
 /// with `secp256k1_context_create` you MUST destroy it with
 /// `secp256k1_context_destroy`, or else you will have a memory leak.
 #[derive(Clone, Debug)]
-#[repr(C)] pub struct Context(c_int);
+#[repr(C)]
+pub struct Context(c_int);
 
 /// Library-internal representation of a Secp256k1 public key
 #[repr(C)]
@@ -71,9 +74,13 @@ impl_raw_debug!(PublicKey);
 
 impl PublicKey {
     /// Create a new (zeroed) public key usable for the FFI interface
-    pub fn new() -> PublicKey { PublicKey([0; 64]) }
+    pub fn new() -> PublicKey {
+        PublicKey([0; 64])
+    }
     /// Create a new (uninitialized) public key usable for the FFI interface
-    pub unsafe fn blank() -> PublicKey { mem::uninitialized() }
+    pub unsafe fn blank() -> PublicKey {
+        mem::uninitialized()
+    }
 }
 
 impl Default for PublicKey {
@@ -110,9 +117,13 @@ impl_from_slice!(RecoverableSignature; 65);
 
 impl Signature {
     /// Create a new (zeroed) signature usable for the FFI interface
-    pub fn new() -> Signature { Signature([0; 64]) }
+    pub fn new() -> Signature {
+        Signature([0; 64])
+    }
     /// Create a new (uninitialized) signature usable for the FFI interface
-    pub unsafe fn blank() -> Signature { mem::uninitialized() }
+    pub unsafe fn blank() -> Signature {
+        mem::uninitialized()
+    }
 }
 
 impl Default for Signature {
@@ -135,9 +146,13 @@ impl convert::AsRef<[u8]> for Signature {
 
 impl RecoverableSignature {
     /// Create a new (zeroed) signature usable for the FFI interface
-    pub fn new() -> RecoverableSignature { RecoverableSignature([0; 65]) }
+    pub fn new() -> RecoverableSignature {
+        RecoverableSignature([0; 65])
+    }
     /// Create a new (uninitialized) signature usable for the FFI interface
-    pub unsafe fn blank() -> RecoverableSignature { mem::uninitialized() }
+    pub unsafe fn blank() -> RecoverableSignature {
+        mem::uninitialized()
+    }
 }
 
 impl Default for RecoverableSignature {
@@ -154,9 +169,13 @@ impl_raw_debug!(SharedSecret);
 
 impl SharedSecret {
     /// Create a new (zeroed) signature usable for the FFI interface
-    pub fn new() -> SharedSecret { SharedSecret([0; 32]) }
+    pub fn new() -> SharedSecret {
+        SharedSecret([0; 32])
+    }
     /// Create a new (uninitialized) signature usable for the FFI interface
-    pub unsafe fn blank() -> SharedSecret { mem::uninitialized() }
+    pub unsafe fn blank() -> SharedSecret {
+        mem::uninitialized()
+    }
 }
 
 impl Default for SharedSecret {
@@ -183,9 +202,7 @@ extern "C" {
 
     pub fn secp256k1_context_destroy(cx: *mut Context);
 
-    pub fn secp256k1_context_randomize(cx: *mut Context,
-                                       seed32: *const c_uchar)
-                                       -> c_int;
+    pub fn secp256k1_context_randomize(cx: *mut Context, seed32: *const c_uchar) -> c_int;
 
     // TODO secp256k1_context_set_illegal_callback
     // TODO secp256k1_context_set_error_callback
@@ -195,116 +212,156 @@ extern "C" {
     // bad inputs.)
 
     // Pubkeys
-    pub fn secp256k1_ec_pubkey_parse(cx: *const Context, pk: *mut PublicKey,
-                                     input: *const c_uchar, in_len: usize)
-                                     -> c_int;
+    pub fn secp256k1_ec_pubkey_parse(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        input: *const c_uchar,
+        in_len: usize,
+    ) -> c_int;
 
-    pub fn secp256k1_ec_pubkey_serialize(cx: *const Context, output: *mut c_uchar,
-                                         out_len: *mut usize, pk: *const PublicKey,
-                                         compressed: c_uint)
-                                         -> c_int;
+    pub fn secp256k1_ec_pubkey_serialize(
+        cx: *const Context,
+        output: *mut c_uchar,
+        out_len: *mut usize,
+        pk: *const PublicKey,
+        compressed: c_uint,
+    ) -> c_int;
 
     // Signatures
-    pub fn secp256k1_ecdsa_signature_parse_der(cx: *const Context, sig: *mut Signature,
-                                               input: *const c_uchar, in_len: usize)
-                                               -> c_int;
+    pub fn secp256k1_ecdsa_signature_parse_der(
+        cx: *const Context,
+        sig: *mut Signature,
+        input: *const c_uchar,
+        in_len: usize,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_signature_parse_compact(cx: *const Context, sig: *mut Signature,
-                                                   input64: *const c_uchar)
-                                                   -> c_int;
+    pub fn secp256k1_ecdsa_signature_parse_compact(
+        cx: *const Context,
+        sig: *mut Signature,
+        input64: *const c_uchar,
+    ) -> c_int;
 
-    pub fn ecdsa_signature_parse_der_lax(cx: *const Context, sig: *mut Signature,
-                                         input: *const c_uchar, in_len: usize)
-                                         -> c_int;
+    pub fn ecdsa_signature_parse_der_lax(
+        cx: *const Context,
+        sig: *mut Signature,
+        input: *const c_uchar,
+        in_len: usize,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_signature_serialize_der(cx: *const Context, output: *mut c_uchar,
-                                                   out_len: *mut usize, sig: *const Signature)
-                                                   -> c_int;
+    pub fn secp256k1_ecdsa_signature_serialize_der(
+        cx: *const Context,
+        output: *mut c_uchar,
+        out_len: *mut usize,
+        sig: *const Signature,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_signature_serialize_compact(cx: *const Context, output64: *const c_uchar,
-                                                       sig: *const Signature)
-                                                       -> c_int;
+    pub fn secp256k1_ecdsa_signature_serialize_compact(
+        cx: *const Context,
+        output64: *const c_uchar,
+        sig: *const Signature,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_recoverable_signature_parse_compact(cx: *const Context, sig: *mut RecoverableSignature,
-                                                               input64: *const c_uchar, recid: c_int)
-                                                               -> c_int;
+    pub fn secp256k1_ecdsa_recoverable_signature_parse_compact(
+        cx: *const Context,
+        sig: *mut RecoverableSignature,
+        input64: *const c_uchar,
+        recid: c_int,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_recoverable_signature_serialize_compact(cx: *const Context, output64: *const c_uchar,
-                                                                   recid: *mut c_int, sig: *const RecoverableSignature)
-                                                                   -> c_int;
+    pub fn secp256k1_ecdsa_recoverable_signature_serialize_compact(
+        cx: *const Context,
+        output64: *const c_uchar,
+        recid: *mut c_int,
+        sig: *const RecoverableSignature,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_recoverable_signature_convert(cx: *const Context, sig: *mut Signature,
-                                                         input: *const RecoverableSignature)
-                                                         -> c_int;
+    pub fn secp256k1_ecdsa_recoverable_signature_convert(
+        cx: *const Context,
+        sig: *mut Signature,
+        input: *const RecoverableSignature,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_signature_normalize(cx: *const Context, out_sig: *mut Signature,
-                                               in_sig: *const Signature)
-                                               -> c_int;
+    pub fn secp256k1_ecdsa_signature_normalize(
+        cx: *const Context,
+        out_sig: *mut Signature,
+        in_sig: *const Signature,
+    ) -> c_int;
 
     // ECDSA
-    pub fn secp256k1_ecdsa_verify(cx: *const Context,
-                                  sig: *const Signature,
-                                  msg32: *const c_uchar,
-                                  pk: *const PublicKey)
-                                  -> c_int;
+    pub fn secp256k1_ecdsa_verify(
+        cx: *const Context,
+        sig: *const Signature,
+        msg32: *const c_uchar,
+        pk: *const PublicKey,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_sign(cx: *const Context,
-                                sig: *mut Signature,
-                                msg32: *const c_uchar,
-                                sk: *const c_uchar,
-                                noncefn: NonceFn,
-                                noncedata: *const c_void)
-                                -> c_int;
+    pub fn secp256k1_ecdsa_sign(
+        cx: *const Context,
+        sig: *mut Signature,
+        msg32: *const c_uchar,
+        sk: *const c_uchar,
+        noncefn: NonceFn,
+        noncedata: *const c_void,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_sign_recoverable(cx: *const Context,
-                                            sig: *mut RecoverableSignature,
-                                            msg32: *const c_uchar,
-                                            sk: *const c_uchar,
-                                            noncefn: NonceFn,
-                                            noncedata: *const c_void)
-                                            -> c_int;
+    pub fn secp256k1_ecdsa_sign_recoverable(
+        cx: *const Context,
+        sig: *mut RecoverableSignature,
+        msg32: *const c_uchar,
+        sk: *const c_uchar,
+        noncefn: NonceFn,
+        noncedata: *const c_void,
+    ) -> c_int;
 
-    pub fn secp256k1_ecdsa_recover(cx: *const Context,
-                                   pk: *mut PublicKey,
-                                   sig: *const RecoverableSignature,
-                                   msg32: *const c_uchar)
-                                   -> c_int;
+    pub fn secp256k1_ecdsa_recover(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        sig: *const RecoverableSignature,
+        msg32: *const c_uchar,
+    ) -> c_int;
 
     // EC
-    pub fn secp256k1_ec_seckey_verify(cx: *const Context,
-                                      sk: *const c_uchar) -> c_int;
+    pub fn secp256k1_ec_seckey_verify(cx: *const Context, sk: *const c_uchar) -> c_int;
 
-    pub fn secp256k1_ec_pubkey_create(cx: *const Context, pk: *mut PublicKey,
-                                      sk: *const c_uchar) -> c_int;
+    pub fn secp256k1_ec_pubkey_create(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        sk: *const c_uchar,
+    ) -> c_int;
 
-//TODO secp256k1_ec_privkey_export
-//TODO secp256k1_ec_privkey_import
+    //TODO secp256k1_ec_privkey_export
+    //TODO secp256k1_ec_privkey_import
 
-    pub fn secp256k1_ec_privkey_tweak_add(cx: *const Context,
-                                          sk: *mut c_uchar,
-                                          tweak: *const c_uchar)
-                                          -> c_int;
+    pub fn secp256k1_ec_privkey_tweak_add(
+        cx: *const Context,
+        sk: *mut c_uchar,
+        tweak: *const c_uchar,
+    ) -> c_int;
 
-    pub fn secp256k1_ec_pubkey_tweak_add(cx: *const Context,
-                                         pk: *mut PublicKey,
-                                         tweak: *const c_uchar)
-                                         -> c_int;
+    pub fn secp256k1_ec_pubkey_tweak_add(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        tweak: *const c_uchar,
+    ) -> c_int;
 
-    pub fn secp256k1_ec_privkey_tweak_mul(cx: *const Context,
-                                          sk: *mut c_uchar,
-                                          tweak: *const c_uchar)
-                                          -> c_int;
+    pub fn secp256k1_ec_privkey_tweak_mul(
+        cx: *const Context,
+        sk: *mut c_uchar,
+        tweak: *const c_uchar,
+    ) -> c_int;
 
-    pub fn secp256k1_ec_pubkey_tweak_mul(cx: *const Context,
-                                         pk: *mut PublicKey,
-                                         tweak: *const c_uchar)
-                                         -> c_int;
+    pub fn secp256k1_ec_pubkey_tweak_mul(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        tweak: *const c_uchar,
+    ) -> c_int;
 
-    pub fn secp256k1_ec_pubkey_combine(cx: *const Context,
-                                       out: *mut PublicKey,
-                                       ins: *const *const PublicKey,
-                                       n: c_int)
-                                       -> c_int;
+    pub fn secp256k1_ec_pubkey_combine(
+        cx: *const Context,
+        out: *mut PublicKey,
+        ins: *const *const PublicKey,
+        n: c_int,
+    ) -> c_int;
 
     pub fn secp256k1_ecdh(
         cx: *const Context,
@@ -318,8 +375,8 @@ extern "C" {
 
 #[cfg(feature = "fuzztarget")]
 mod fuzz_dummy {
-    use std::os::raw::{c_int, c_uchar, c_uint, c_void};
     use ffi::*;
+    use std::os::raw::{c_int, c_uchar, c_uint, c_void};
     use std::ptr;
 
     extern "C" {
@@ -347,10 +404,13 @@ mod fuzz_dummy {
     }
 
     /// Asserts that cx is properly initialized
-    pub unsafe fn secp256k1_context_randomize(cx: *mut Context,
-                                              _seed32: *const c_uchar)
-                                              -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_context_randomize(cx: *mut Context, _seed32: *const c_uchar) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         1
     }
 
@@ -363,20 +423,30 @@ mod fuzz_dummy {
 
     // Pubkeys
     /// Parse 33/65 byte pubkey into PublicKey, losing compressed information
-    pub unsafe fn secp256k1_ec_pubkey_parse(cx: *const Context, pk: *mut PublicKey,
-                                            input: *const c_uchar, in_len: usize)
-                                            -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ec_pubkey_parse(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        input: *const c_uchar,
+        in_len: usize,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         match in_len {
             33 => {
-                if (*input.offset(1) > 0x7f && *input != 2) || (*input.offset(1) <= 0x7f && *input != 3) {
+                if (*input.offset(1) > 0x7f && *input != 2)
+                    || (*input.offset(1) <= 0x7f && *input != 3)
+                {
                     0
                 } else {
                     ptr::copy(input.offset(1), (*pk).0[0..32].as_mut_ptr(), 32);
                     ptr::copy(input.offset(1), (*pk).0[32..64].as_mut_ptr(), 32);
                     test_pk_validate(cx, pk)
                 }
-            },
+            }
             65 => {
                 if *input != 4 && *input != 6 && *input != 7 {
                     0
@@ -384,18 +454,28 @@ mod fuzz_dummy {
                     ptr::copy(input.offset(1), (*pk).0.as_mut_ptr(), 64);
                     test_pk_validate(cx, pk)
                 }
-            },
-            _ => 0
+            }
+            _ => 0,
         }
     }
 
     /// Serialize PublicKey back to 33/65 byte pubkey
-    pub unsafe fn secp256k1_ec_pubkey_serialize(cx: *const Context, output: *mut c_uchar,
-                                                out_len: *mut usize, pk: *const PublicKey,
-                                                compressed: c_uint)
-                                                -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if test_pk_validate(cx, pk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_pubkey_serialize(
+        cx: *const Context,
+        output: *mut c_uchar,
+        out_len: *mut usize,
+        pk: *const PublicKey,
+        compressed: c_uint,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if test_pk_validate(cx, pk) != 1 {
+            return 0;
+        }
         if compressed == SECP256K1_SER_COMPRESSED {
             assert_eq!(*out_len, 33);
             if (*pk).0[0] > 0x7f {
@@ -412,36 +492,59 @@ mod fuzz_dummy {
             panic!("Bad flags");
         }
         1
-     }
+    }
 
     // Signatures
-    pub unsafe fn secp256k1_ecdsa_signature_parse_der(_cx: *const Context, _sig: *mut Signature,
-                                                      _input: *const c_uchar, _in_len: usize)
-                                                      -> c_int {
+    pub unsafe fn secp256k1_ecdsa_signature_parse_der(
+        _cx: *const Context,
+        _sig: *mut Signature,
+        _input: *const c_uchar,
+        _in_len: usize,
+    ) -> c_int {
         unimplemented!();
     }
 
     /// Copies input64 to sig, checking the pubkey part is valid
-    pub unsafe fn secp256k1_ecdsa_signature_parse_compact(cx: *const Context, sig: *mut Signature,
-                                                          input64: *const c_uchar)
-                                                          -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if secp256k1_ec_seckey_verify(cx, input64.offset(32)) != 1 { return 0; } // sig should be msg32||sk
+    pub unsafe fn secp256k1_ecdsa_signature_parse_compact(
+        cx: *const Context,
+        sig: *mut Signature,
+        input64: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if secp256k1_ec_seckey_verify(cx, input64.offset(32)) != 1 {
+            return 0;
+        } // sig should be msg32||sk
         ptr::copy(input64, (*sig).0[..].as_mut_ptr(), 64);
         1
     }
 
-    pub unsafe fn ecdsa_signature_parse_der_lax(_cx: *const Context, _sig: *mut Signature,
-                                                _input: *const c_uchar, _in_len: usize)
-                                                -> c_int {
+    pub unsafe fn ecdsa_signature_parse_der_lax(
+        _cx: *const Context,
+        _sig: *mut Signature,
+        _input: *const c_uchar,
+        _in_len: usize,
+    ) -> c_int {
         unimplemented!();
     }
 
     /// Copies up to 72 bytes into output from sig
-    pub unsafe fn secp256k1_ecdsa_signature_serialize_der(cx: *const Context, output: *mut c_uchar,
-                                                          out_len: *mut usize, sig: *const Signature)
-                                                          -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ecdsa_signature_serialize_der(
+        cx: *const Context,
+        output: *mut c_uchar,
+        out_len: *mut usize,
+        sig: *const Signature,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
 
         let mut len_r = 33;
         if *(*sig).0.as_ptr().offset(0) < 0x80 {
@@ -468,56 +571,89 @@ mod fuzz_dummy {
         *output.offset(5 + len_r as isize) = len_s;
         if len_s == 33 {
             *output.offset(6 + len_r as isize) = 0;
-            ptr::copy((*sig).0[..].as_ptr().offset(32), output.offset(7 + len_r as isize), 32);
+            ptr::copy(
+                (*sig).0[..].as_ptr().offset(32),
+                output.offset(7 + len_r as isize),
+                32,
+            );
         } else {
-            ptr::copy((*sig).0[..].as_ptr().offset(32), output.offset(6 + len_r as isize), 32);
+            ptr::copy(
+                (*sig).0[..].as_ptr().offset(32),
+                output.offset(6 + len_r as isize),
+                32,
+            );
         }
         1
     }
 
     /// Copies sig to output64
-    pub unsafe fn secp256k1_ecdsa_signature_serialize_compact(cx: *const Context, output64: *mut c_uchar,
-                                                              sig: *const Signature)
-                                                              -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ecdsa_signature_serialize_compact(
+        cx: *const Context,
+        output64: *mut c_uchar,
+        sig: *const Signature,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         ptr::copy((*sig).0[..].as_ptr(), output64, 64);
         1
     }
 
-    pub unsafe fn secp256k1_ecdsa_recoverable_signature_parse_compact(_cx: *const Context, _sig: *mut RecoverableSignature,
-                                                                      _input64: *const c_uchar, _recid: c_int)
-                                                                      -> c_int {
+    pub unsafe fn secp256k1_ecdsa_recoverable_signature_parse_compact(
+        _cx: *const Context,
+        _sig: *mut RecoverableSignature,
+        _input64: *const c_uchar,
+        _recid: c_int,
+    ) -> c_int {
         unimplemented!();
     }
 
-    pub unsafe fn secp256k1_ecdsa_recoverable_signature_serialize_compact(_cx: *const Context, _output64: *const c_uchar,
-                                                                          _recid: *mut c_int, _sig: *const RecoverableSignature)
-                                                                          -> c_int {
+    pub unsafe fn secp256k1_ecdsa_recoverable_signature_serialize_compact(
+        _cx: *const Context,
+        _output64: *const c_uchar,
+        _recid: *mut c_int,
+        _sig: *const RecoverableSignature,
+    ) -> c_int {
         unimplemented!();
     }
 
-    pub unsafe fn secp256k1_ecdsa_recoverable_signature_convert(_cx: *const Context, _sig: *mut Signature,
-                                                                _input: *const RecoverableSignature)
-                                                                -> c_int {
+    pub unsafe fn secp256k1_ecdsa_recoverable_signature_convert(
+        _cx: *const Context,
+        _sig: *mut Signature,
+        _input: *const RecoverableSignature,
+    ) -> c_int {
         unimplemented!();
     }
 
-    pub unsafe fn secp256k1_ecdsa_signature_normalize(_cx: *const Context, _out_sig: *mut Signature,
-                                                      _in_sig: *const Signature)
-                                                      -> c_int {
+    pub unsafe fn secp256k1_ecdsa_signature_normalize(
+        _cx: *const Context,
+        _out_sig: *mut Signature,
+        _in_sig: *const Signature,
+    ) -> c_int {
         unimplemented!();
     }
 
     // ECDSA
     /// Verifies that sig is msg32||pk[0..32]
-    pub unsafe fn secp256k1_ecdsa_verify(cx: *const Context,
-                                         sig: *const Signature,
-                                         msg32: *const c_uchar,
-                                         pk: *const PublicKey)
-                                         -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ecdsa_verify(
+        cx: *const Context,
+        sig: *const Signature,
+        msg32: *const c_uchar,
+        pk: *const PublicKey,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         assert!((*cx).0 as u32 & SECP256K1_START_VERIFY == SECP256K1_START_VERIFY);
-        if test_pk_validate(cx, pk) != 1 { return 0; }
+        if test_pk_validate(cx, pk) != 1 {
+            return 0;
+        }
         for i in 0..32 {
             if (*sig).0[i] != *msg32.offset(i as isize) {
                 return 0;
@@ -531,32 +667,48 @@ mod fuzz_dummy {
     }
 
     /// Sets sig to msg32||sk
-    pub unsafe fn secp256k1_ecdsa_sign(cx: *const Context,
-                                       sig: *mut Signature,
-                                       msg32: *const c_uchar,
-                                       sk: *const c_uchar,
-                                       _noncefn: NonceFn,
-                                       _noncedata: *const c_void)
-                                       -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ecdsa_sign(
+        cx: *const Context,
+        sig: *mut Signature,
+        msg32: *const c_uchar,
+        sk: *const c_uchar,
+        _noncefn: NonceFn,
+        _noncedata: *const c_void,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         assert!((*cx).0 as u32 & SECP256K1_START_SIGN == SECP256K1_START_SIGN);
-        if secp256k1_ec_seckey_verify(cx, sk) != 1 { return 0; }
+        if secp256k1_ec_seckey_verify(cx, sk) != 1 {
+            return 0;
+        }
         ptr::copy(msg32, (*sig).0[0..32].as_mut_ptr(), 32);
         ptr::copy(sk, (*sig).0[32..64].as_mut_ptr(), 32);
         1
     }
 
     /// Sets sig to (2|3)||msg32||sk
-    pub unsafe fn secp256k1_ecdsa_sign_recoverable(cx: *const Context,
-                                                   sig: *mut RecoverableSignature,
-                                                   msg32: *const c_uchar,
-                                                   sk: *const c_uchar,
-                                                   _noncefn: NonceFn,
-                                                   _noncedata: *const c_void)
-                                                   -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ecdsa_sign_recoverable(
+        cx: *const Context,
+        sig: *mut RecoverableSignature,
+        msg32: *const c_uchar,
+        sk: *const c_uchar,
+        _noncefn: NonceFn,
+        _noncedata: *const c_void,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         assert!((*cx).0 as u32 & SECP256K1_START_SIGN == SECP256K1_START_SIGN);
-        if secp256k1_ec_seckey_verify(cx, sk) != 1 { return 0; }
+        if secp256k1_ec_seckey_verify(cx, sk) != 1 {
+            return 0;
+        }
         if *sk.offset(0) > 0x7f {
             (*sig).0[0] = 2;
         } else {
@@ -567,20 +719,27 @@ mod fuzz_dummy {
         1
     }
 
-    pub unsafe fn secp256k1_ecdsa_recover(_cx: *const Context,
-                                          _pk: *mut PublicKey,
-                                          _sig: *const RecoverableSignature,
-                                          _msg32: *const c_uchar)
-                                          -> c_int {
+    pub unsafe fn secp256k1_ecdsa_recover(
+        _cx: *const Context,
+        _pk: *mut PublicKey,
+        _sig: *const RecoverableSignature,
+        _msg32: *const c_uchar,
+    ) -> c_int {
         unimplemented!();
     }
 
     // EC
     /// Checks that pk != 0xffff...ffff and pk[0..32] == pk[32..64]
-    pub unsafe fn test_pk_validate(cx: *const Context,
-                                   pk: *const PublicKey) -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if (*pk).0[0..32] != (*pk).0[32..64] || secp256k1_ec_seckey_verify(cx, (*pk).0[0..32].as_ptr()) == 0 {
+    pub unsafe fn test_pk_validate(cx: *const Context, pk: *const PublicKey) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if (*pk).0[0..32] != (*pk).0[32..64]
+            || secp256k1_ec_seckey_verify(cx, (*pk).0[0..32].as_ptr()) == 0
+        {
             0
         } else {
             1
@@ -588,95 +747,153 @@ mod fuzz_dummy {
     }
 
     /// Checks that sk != 0xffff...ffff
-    pub unsafe fn secp256k1_ec_seckey_verify(cx: *const Context,
-                                             sk: *const c_uchar) -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ec_seckey_verify(cx: *const Context, sk: *const c_uchar) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         let mut res = 0;
         for i in 0..32 {
-            if *sk.offset(i as isize) != 0xff { res = 1 };
+            if *sk.offset(i as isize) != 0xff {
+                res = 1
+            };
         }
         res
     }
 
     /// Sets pk to sk||sk
-    pub unsafe fn secp256k1_ec_pubkey_create(cx: *const Context, pk: *mut PublicKey,
-                                             sk: *const c_uchar) -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if secp256k1_ec_seckey_verify(cx, sk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_pubkey_create(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        sk: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if secp256k1_ec_seckey_verify(cx, sk) != 1 {
+            return 0;
+        }
         ptr::copy(sk, (*pk).0[0..32].as_mut_ptr(), 32);
         ptr::copy(sk, (*pk).0[32..64].as_mut_ptr(), 32);
         1
     }
 
-//TODO secp256k1_ec_privkey_export
-//TODO secp256k1_ec_privkey_import
+    //TODO secp256k1_ec_privkey_export
+    //TODO secp256k1_ec_privkey_import
 
     /// Copies the first 16 bytes of tweak into the last 16 bytes of sk
-    pub unsafe fn secp256k1_ec_privkey_tweak_add(cx: *const Context,
-                                                 sk: *mut c_uchar,
-                                                 tweak: *const c_uchar)
-                                                 -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if secp256k1_ec_seckey_verify(cx, sk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_privkey_tweak_add(
+        cx: *const Context,
+        sk: *mut c_uchar,
+        tweak: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if secp256k1_ec_seckey_verify(cx, sk) != 1 {
+            return 0;
+        }
         ptr::copy(tweak.offset(16), sk.offset(16), 16);
         *sk.offset(24) = 0x7f; // Ensure sk remains valid no matter what tweak was
         1
     }
 
     /// The PublicKey equivalent of secp256k1_ec_privkey_tweak_add
-    pub unsafe fn secp256k1_ec_pubkey_tweak_add(cx: *const Context,
-                                                pk: *mut PublicKey,
-                                                tweak: *const c_uchar)
-                                                -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if test_pk_validate(cx, pk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_pubkey_tweak_add(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        tweak: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if test_pk_validate(cx, pk) != 1 {
+            return 0;
+        }
         ptr::copy(tweak.offset(16), (*pk).0[16..32].as_mut_ptr(), 16);
-        ptr::copy(tweak.offset(16), (*pk).0[16+32..64].as_mut_ptr(), 16);
+        ptr::copy(tweak.offset(16), (*pk).0[16 + 32..64].as_mut_ptr(), 16);
         (*pk).0[24] = 0x7f; // Ensure pk remains valid no matter what tweak was
-        (*pk).0[24+32] = 0x7f; // Ensure pk remains valid no matter what tweak was
+        (*pk).0[24 + 32] = 0x7f; // Ensure pk remains valid no matter what tweak was
         1
     }
 
     /// Copies the last 16 bytes of tweak into the last 16 bytes of sk
-    pub unsafe fn secp256k1_ec_privkey_tweak_mul(cx: *const Context,
-                                                 sk: *mut c_uchar,
-                                                 tweak: *const c_uchar)
-                                                 -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if secp256k1_ec_seckey_verify(cx, sk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_privkey_tweak_mul(
+        cx: *const Context,
+        sk: *mut c_uchar,
+        tweak: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if secp256k1_ec_seckey_verify(cx, sk) != 1 {
+            return 0;
+        }
         ptr::copy(tweak.offset(16), sk.offset(16), 16);
         *sk.offset(24) = 0x00; // Ensure sk remains valid no matter what tweak was
         1
     }
 
     /// The PublicKey equivalent of secp256k1_ec_privkey_tweak_mul
-    pub unsafe fn secp256k1_ec_pubkey_tweak_mul(cx: *const Context,
-                                                pk: *mut PublicKey,
-                                                tweak: *const c_uchar)
-                                                -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if test_pk_validate(cx, pk) != 1 { return 0; }
+    pub unsafe fn secp256k1_ec_pubkey_tweak_mul(
+        cx: *const Context,
+        pk: *mut PublicKey,
+        tweak: *const c_uchar,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if test_pk_validate(cx, pk) != 1 {
+            return 0;
+        }
         ptr::copy(tweak.offset(16), (*pk).0[16..32].as_mut_ptr(), 16);
-        ptr::copy(tweak.offset(16), (*pk).0[16+32..64].as_mut_ptr(), 16);
+        ptr::copy(tweak.offset(16), (*pk).0[16 + 32..64].as_mut_ptr(), 16);
         (*pk).0[24] = 0x00; // Ensure pk remains valid no matter what tweak was
-        (*pk).0[24+32] = 0x00; // Ensure pk remains valid no matter what tweak was
+        (*pk).0[24 + 32] = 0x00; // Ensure pk remains valid no matter what tweak was
         1
     }
 
-    pub unsafe fn secp256k1_ec_pubkey_combine(cx: *const Context,
-                                              out: *mut PublicKey,
-                                              ins: *const *const PublicKey,
-                                              n: c_int)
-                                              -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
+    pub unsafe fn secp256k1_ec_pubkey_combine(
+        cx: *const Context,
+        out: *mut PublicKey,
+        ins: *const *const PublicKey,
+        n: c_int,
+    ) -> c_int {
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
         assert!(n <= 32 && n >= 0); //TODO: Remove this restriction?
         for i in 0..n {
-            if test_pk_validate(cx, *ins.offset(i as isize)) != 1 { return 0; }
-            (*out).0[(i*32/n) as usize..((i+1)*32/n) as usize].copy_from_slice(&(**ins.offset(i as isize)).0[(i*32/n) as usize..((i+1)*32/n) as usize]);
+            if test_pk_validate(cx, *ins.offset(i as isize)) != 1 {
+                return 0;
+            }
+            (*out).0[(i * 32 / n) as usize..((i + 1) * 32 / n) as usize].copy_from_slice(
+                &(**ins.offset(i as isize)).0[(i * 32 / n) as usize..((i + 1) * 32 / n) as usize],
+            );
         }
         ptr::copy((*out).0[0..32].as_ptr(), (*out).0[32..64].as_mut_ptr(), 32);
         (*out).0[24] = 0x7f; // pk should always be valid
-        (*out).0[24+32] = 0x7f; // pk should always be valid
+        (*out).0[24 + 32] = 0x7f; // pk should always be valid
         test_pk_validate(cx, out)
     }
 
@@ -689,8 +906,15 @@ mod fuzz_dummy {
         _hashfp: EcdhHashFn,
         _data: *mut c_void,
     ) -> c_int {
-        assert!(!cx.is_null() && (*cx).0 as u32 & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN) == 0);
-        if secp256k1_ec_seckey_verify(cx, scalar) != 1 { return 0; }
+        assert!(
+            !cx.is_null()
+                && (*cx).0 as u32
+                    & !(SECP256K1_START_NONE | SECP256K1_START_VERIFY | SECP256K1_START_SIGN)
+                    == 0
+        );
+        if secp256k1_ec_seckey_verify(cx, scalar) != 1 {
+            return 0;
+        }
 
         let mut scalar_prefix = [0; 16];
         ptr::copy(scalar, scalar_prefix[..].as_mut_ptr(), 16);

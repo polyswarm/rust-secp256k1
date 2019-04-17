@@ -36,11 +36,15 @@ macro_rules! impl_array_newtype {
 
             #[inline]
             /// Returns the length of the object as an array
-            pub fn len(&self) -> usize { $len }
+            pub fn len(&self) -> usize {
+                $len
+            }
 
             #[inline]
             /// Returns whether the object as an array is empty
-            pub fn is_empty(&self) -> bool { false }
+            pub fn is_empty(&self) -> bool {
+                false
+            }
         }
 
         impl PartialEq for $thing {
@@ -73,9 +77,7 @@ macro_rules! impl_array_newtype {
                     use std::intrinsics::copy_nonoverlapping;
                     use std::mem;
                     let mut ret: $thing = mem::uninitialized();
-                    copy_nonoverlapping(self.as_ptr(),
-                                        ret.as_mut_ptr(),
-                                        $len);
+                    copy_nonoverlapping(self.as_ptr(), ret.as_mut_ptr(), $len);
                     ret
                 }
             }
@@ -130,7 +132,7 @@ macro_rules! impl_array_newtype {
                 &dat[..]
             }
         }
-    }
+    };
 }
 
 #[macro_export]
@@ -145,7 +147,7 @@ macro_rules! impl_pretty_debug {
                 write!(f, ")")
             }
         }
-     }
+    };
 }
 
 #[macro_export]
@@ -159,23 +161,23 @@ macro_rules! impl_raw_debug {
                 Ok(())
             }
         }
-     }
+    };
 }
 
 #[macro_export]
 macro_rules! impl_from_slice {
     ($name:ident; $len:expr) => {
         impl FromSlice for $name {
-        type Item = $name;
-        fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
-            let mut array_data: [u8; $len] = [0; $len];
-            if data.len() != $len {
-                return Err(());
-            }
-            array_data.clone_from_slice(data);
+            type Item = $name;
+            fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
+                let mut array_data: [u8; $len] = [0; $len];
+                if data.len() != $len {
+                    return Err(());
+                }
+                array_data.clone_from_slice(data);
 
-            Ok($name(array_data))
-        }
+                Ok($name(array_data))
+            }
         }
     };
 }
