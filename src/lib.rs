@@ -155,11 +155,11 @@ pub use key::PublicKey;
 use std::marker::PhantomData;
 
 /// A tag used for recovering the public key from a compact signature
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Ord, PartialOrd)]
 pub struct RecoveryId(i32);
 
 /// An ECDSA signature
-#[derive(Copy, Clone, PartialEq, Eq)]
+#[derive(Copy, Clone, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Signature(ffi::Signature);
 
 impl fmt::Debug for Signature {
@@ -219,7 +219,7 @@ fn from_slice(data: &[u8]) -> Result<Self::Item, ()> {
 }
 
 /// An ECDSA signature with a recovery ID for pubkey recovery
-#[derive(Copy, Clone, PartialEq, Eq, Debug)]
+#[derive(Copy, Clone, PartialEq, Eq, Debug, Ord, PartialOrd)]
 pub struct RecoverableSignature(ffi::RecoverableSignature);
 
 /// Trait describing something that promises to be a 32-byte random number; in particular,
